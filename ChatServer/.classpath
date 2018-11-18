@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Chat"/>
+	<classpathentry kind="lib" path="/ChatCommon/bin" sourcepath="/ChatCommon/src"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
