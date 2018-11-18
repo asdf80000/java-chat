@@ -25,8 +25,8 @@ public class Matchmaking {
 				if(matches.size() < 2) return;
 				while(matches.size() > 0 && mc.countUsers() < 15) {
 					MatchUserData mud = matches.get((int)(Math.random() * matches.size()));
-					System.out.println("Matched: " + mud.username);
-					mud.curmatch = mc;
+					System.out.println("Matched: " + mud.userName);
+					mud.currentMatch = mc;
 					mc.addUser(mud);
 				}
 			}
