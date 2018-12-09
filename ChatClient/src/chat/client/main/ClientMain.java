@@ -8,14 +8,22 @@ import chat.client.handler.ChatClientPacketEncoder;
 import chat.client.handler.InboundExceptionHandler;
 import chat.common.enums.CloseCause;
 import chat.common.handler.ChannelState;
+import chat.common.handler.ChatCommonInboundPipelineHandler;
 import chat.common.handler.ChatCommonInboundPriorityHandler;
 import chat.common.handler.ChatCommonPacketPrepender;
 import chat.common.handler.ChatCommonPacketSplitter;
 import chat.common.main.HandleQueueGeneric;
+import chat.common.main.Utils;
+import chat.common.packet.all.PacketAllCbSetState;
 import chat.common.packet.all.PacketAllSbDisconnect;
+import chat.common.packet.match.PacketMatchSbCancelMatchmake;
+import chat.common.packet.play.PacketPlaySbGetList;
+import chat.common.packet.play.PacketPlaySbMatchInfo;
+import chat.common.packet.play.PacketPlaySbQuitMatch;
 import chat.common.packet.user.PacketUserCbSetUsername;
 import chat.common.packet.user.PacketUserSbGetUsername;
 import chat.common.packet.user.PacketUserSbSetUsername;
+import chat.common.packet.user.PacketUserSbStartMatchmake;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -35,8 +43,10 @@ public class ClientMain {
 	}
 
 	public static Scanner f = new Scanner(System.in);
-	public ChatClientInboundHandler handle = null;
-	public ChatCommonInboundPriorityHandler priority = null;
+	public static ChatClientInboundHandler handle = null;
+	public static ChatCommonInboundPriorityHandler priority = null;
+	public static ChatCommonInboundPipelineHandler pipeline = null;
+	public static ChatCommonInboundPipelineHandler afterpipeline = null;
 
 	public ClientMain(String addr, int port) throws Exception {
 		// TODO Auto-generated constructor stub
@@ -51,12 +61,14 @@ public class ClientMain {
 						protected void initChannel(Channel ch) throws Exception {
 							handle = new ChatClientInboundHandler();
 							priority = new ChatCommonInboundPriorityHandler();
+							pipeline = new ChatCommonInboundPipelineHandler();
+							afterpipeline = new ChatCommonInboundPipelineHandler();
 							ch.pipeline().addLast("inboundsplit", new ChatCommonPacketSplitter())
 									.addLast("outboundprepend", new ChatCommonPacketPrepender())
 									.addLast("inboundpacketdecoder", new ChatClientPacketDecoder())
 									.addLast("outboundpacketencoder", new ChatClientPacketEncoder())
-									.addLast("inboundpriority", priority).addLast("inboundhandle", handle)
-									.addLast("inboundexception", ieh);
+									.addLast("inboundpriority", priority).addLast("inboundpipeline", pipeline)
+									.addLast("inboundhandle", handle).addLast("inboundexception", ieh);
 						};
 					});
 			new Thread(new Runnable() {
@@ -80,12 +92,25 @@ public class ClientMain {
 							System.out.println("Closed connection. Closing...");
 							System.exit(0);
 						} else if (cmd.equals("/help")) {
-							System.out.println("------------- Help");
-							System.out.println("/getnick - ´Ğ³×ÀÓ Ãâ·Â");
-							System.out.println("/setnick - ´Ğ³×ÀÓ º¯°æ");
-							System.out.println("/close - ¿¬°á ´İ±â");
-							System.out.println("/help - µµ¿ò¸»");
-							System.out.println("/match - ¸ÅÄ¡¸ŞÀÌÅ· Åä±Û");
+							System.out.println("---------- Chat ì½˜ì†” í´ë¼ì´ì–¸íŠ¸ ----------");
+							System.out.println(" - ALL");
+							System.out.println("/close - ì—°ê²° ë‹«ê¸°");
+							System.out.println("/help - ë„ì›€ë§");
+							
+							System.out.println(" - PLAY");
+							System.out.println("/chat [ë‚´ìš©] - ì±„íŒ…í•˜ê¸°");
+							System.out.println("/list - ì±„íŒ…ë°© ìœ ì € ëª©ë¡");
+							System.out.println("/matchinfo - ë§¤ì¹˜ ì •ë³´");
+							System.out.println("/quit - ì±„íŒ…ë°© ë‚˜ê°€ê¸°");
+							System.out.println("/regame - ì±„íŒ…ë°© ë‹¤ì‹œ ì°¾ê¸°");
+							
+							System.out.println(" - USER");
+							System.out.println("/getnick - ë‹‰ë„¤ì„ ì¶œë ¥");
+							System.out.println("/setnick [ë‹‰ë„¤ì„] - ë‹‰ë„¤ì„ ë³€ê²½");
+
+							System.out.println(" - MATCH");
+							System.out.println("/startmatch - ë§¤ì¹˜ë©”ì´í‚¹ ì‹œì‘");
+							System.out.println("/stopmatch - ë©”ì¹˜ë©”ì´í‚¹ ì·¨ì†Œ");						
 						} else if (cmd.equals("/getnick")) {
 							System.out.println("Processing...");
 							PacketUserSbGetUsername p = new PacketUserSbGetUsername();
@@ -95,20 +120,59 @@ public class ClientMain {
 
 										@Override
 										public void run(PacketUserCbSetUsername p) {
-											System.out.println("´ç½ÅÀÇ »ç¿ëÀÚ ÀÌ¸§Àº ´ÙÀ½°ú °°½À´Ï´Ù. : ");
-											System.out.println(p.username);
+											System.out.println("<ëª…ë ¹ì–´ ëŒ€ë‹µ> ë‹¹ì‹ ì˜ ì‚¬ìš©ì ì´ë¦„: " + p.username);
 										}
 
 									});
 							handle.sendPacket(p);
 						} else if (cmd.equals("/setnick") == !!!!!!!!!!!!!!!!!!true) {
 							String toset = f.nextLine().substring(1);
-							System.out.println("»ç¿ëÀÚ ÀÌ¸§À» ´ÙÀ½À¸·Î º¯°æÇÕ´Ï´Ù: " + toset);
+							System.out.println("ì‚¬ìš©ì ì´ë¦„ì„ ë‹¤ìŒìœ¼ë¡œ ë³€ê²½í•©ë‹ˆë‹¤: " + toset);
 							PacketUserSbSetUsername p = new PacketUserSbSetUsername();
 							p.username = toset;
 							handle.sendPacket(p);
+						} else if (cmd.equals("/startmatch")) {
+							PacketUserSbStartMatchmake mm = new PacketUserSbStartMatchmake();
+							handle.sendPacket(mm);
+						} else if (cmd.equals("/stopmatch")) {
+							PacketMatchSbCancelMatchmake mm = new PacketMatchSbCancelMatchmake();
+							handle.sendPacket(mm);
+						} else if (cmd.equals("/chat")) {
+							String text = f.nextLine().substring(1);
+							handle.chat(text);
+						} else if (cmd.equals("/list")) {
+							handle.sendPacket(new PacketPlaySbGetList());
+						} else if (cmd.equals("/quit")) {
+							handle.sendPacket(new PacketPlaySbQuitMatch());
+						} else if (cmd.equals("/regame")) {
+							handle.sendPacket(new PacketPlaySbQuitMatch());
+							pipeline.addQueue(PacketAllCbSetState.class, new HandleQueueGeneric<PacketAllCbSetState>() {
+
+								@Override
+								public void run(PacketAllCbSetState p) {
+									final HandleQueueGeneric<PacketAllCbSetState> ts = this;
+									new Thread(new Runnable() {
+
+										@Override
+										public void run() {
+											if (p.cs != ChannelState.USER) {
+												ClientMain.pipeline.addQueue(PacketAllCbSetState.class, ts);
+												return;
+											}
+											while (ClientMain.cs != ChannelState.USER) {
+												Utils.sleep();
+											}
+											PacketUserSbStartMatchmake mm = new PacketUserSbStartMatchmake();
+											handle.sendPacket(mm);
+										}
+									}).start();
+								}
+							});
+
+						} else if (cmd.equals("/matchinfo")) {
+							handle.sendPacket(new PacketPlaySbMatchInfo());
 						} else {
-							System.out.println("Unknown command!");
+							System.out.println("ëª…ë ¹ì–´ë¥¼ ì•Œ ìˆ˜ ì—†ìŠµë‹ˆë‹¤!");
 						}
 					}
 				}

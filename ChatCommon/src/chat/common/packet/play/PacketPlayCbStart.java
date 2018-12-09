@@ -11,17 +11,27 @@ import chat.common.work.Aes256Utils;
 import chat.common.work.RSAUtils;
 import io.netty.buffer.ByteBuf;
 
+/**
+ * 
+ * @see PacketPlaySbStart
+ * @author User
+ *
+ */
 public class PacketPlayCbStart implements Packet<PacketPlayCbListener> {
 	private Key ww = null;
+	private static Key dww = null;
 	public PacketPlayCbStart() {
 	}
 	public void workwith(Key w) {
 		ww = w;
 	}
+	public static void decodeworkwith(Key w) {
+		dww = w;
+	}
 	public SecretKey sk;
 	@Override
 	public void decode(ByteBuf buf) {
-		sk = Aes256Utils.genKey(RSAUtils.decrypt(Utils.getByteArray(buf), ww));
+		sk = Aes256Utils.genKey(RSAUtils.decrypt(Utils.getByteArray(buf), dww));
 	}
 
 	@Override

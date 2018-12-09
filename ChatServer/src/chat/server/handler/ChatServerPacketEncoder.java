@@ -11,7 +11,7 @@ public class ChatServerPacketEncoder extends MessageToByteEncoder<Packet<?>> {
 	@Override
 	protected void encode(ChannelHandlerContext ctx, Packet<?> msg, ByteBuf out) throws Exception {
 		int pid = Utils.getChannelAttr(AttributeSaver.state, ctx.channel()).get().m.get(ProtocolDirection.CLIENTBOUND).inverse().get(msg.getClass());
-		System.out.println("[Encoder] Server: Writing packet : " + msg.getClass().getSimpleName() + " (0x" + Integer.toHexString(pid) + ") " + msg);
+		System.out.println("[Encoder] Server: Writing packet : " + msg.getClass().getSimpleName() + " (0x" + Integer.toHexString(pid) + ") " + Utils.serialize(msg));
 		out.writeInt(pid);
 		msg.encode(out);
 		ctx.flush();

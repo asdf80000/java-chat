@@ -10,12 +10,13 @@ import chat.common.listener.PacketMatchSbListener;
 import chat.common.listener.PacketUserSbListener;
 import chat.common.main.Utils;
 import chat.common.packet.Packet;
+import chat.common.packet.all.PacketAllCbMessage;
+import chat.common.packet.all.PacketAllCbMessage.PacketAllCbMessageType;
 import chat.common.packet.all.PacketAllCbSetState;
 import chat.common.packet.all.PacketAllSbDisconnect;
 import chat.common.packet.login.PacketLoginCbWelcome;
 import chat.common.packet.login.PacketLoginSbHandshake;
 import chat.common.packet.match.PacketMatchSbCancelMatchmake;
-import chat.common.packet.user.PacketUserCbAnnounce;
 import chat.common.packet.user.PacketUserCbSetUsername;
 import chat.common.packet.user.PacketUserSbGetUsername;
 import chat.common.packet.user.PacketUserSbSetUsername;
@@ -76,9 +77,8 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 		sendPacket(p);
 		
 		if(packet.message) {
-			PacketUserCbAnnounce p1 = new PacketUserCbAnnounce();
-			p1.message = "Your username is " + username + "!";
-			sendPacket(p1);
+			PacketAllCbMessage p2 = new PacketAllCbMessage(PacketAllCbMessageType.YOURNICK, new String[] {username});
+			sendPacket(p2);
 		}
 	}
 	
@@ -98,29 +98,27 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 			sendPacket(st);
 		}
 		Utils.getChannelAttr(AttributeSaver.state, ch).set(ChannelState.USER);
-		;{
-			PacketUserCbAnnounce p1 = new PacketUserCbAnnounce();
-			p1.message = "Welcome user " + p.username + "! This is test message!";
-			sendPacket(p1);
-		}
+		sendPacket(new PacketAllCbMessage(PacketAllCbMessageType.HELLO));
 	}
 
 	@Override
 	public void process(PacketUserSbSetUsername packet) {
 		Utils.getChannelAttr(AttributeSaver.username, ch).set(packet.username);
+		sendPacket(new PacketAllCbMessage(PacketAllCbMessageType.NICKCHANGED));
 	}
 
 	@Override
 	public void process(PacketUserSbStartMatchmake packet) {
-		// TODO start matchmaking
 		{
 			PacketAllCbSetState p = new PacketAllCbSetState();
 			p.cs = ChannelState.MATCH;
 			sendPacket(p);
 		}
 		Utils.getChannelAttr(AttributeSaver.state, ch).set(ChannelState.MATCH);
+		System.out.println("[Handle][" + getUsername() + "] Started matchmaking.");
 		mud = new MatchUserData(getAddress(), Utils.getChannelAttr(AttributeSaver.username, ch).get(), this);
 		Matchmaking.matches.add(mud);
+		sendPacket(new PacketAllCbMessage(PacketAllCbMessageType.MATCHSTARTED));
 	}
 	MatchUserData mud = null;
 	
@@ -132,12 +130,16 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 			sendPacket(p);
 		}
 		Utils.getChannelAttr(AttributeSaver.state, ch).set(ChannelState.USER);
+		System.out.println("[Handle][" + getUsername() + "] Canceled matchmaking.");
 		Matchmaking.matches.remove(mud);
 		mud = null;
 	}
 	
 	public String getAddress() {
 		return ((InetSocketAddress)ch.remoteAddress()).getHostName();
+	}
+	public String getUsername() {
+		return Utils.getChannelAttr(AttributeSaver.username, ch).get();
 	}
 	
 	@Override

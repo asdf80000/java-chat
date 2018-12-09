@@ -8,6 +8,11 @@ import chat.common.packet.Packet;
 import chat.common.work.RSAUtils;
 import io.netty.buffer.ByteBuf;
 
+/**
+ * @see PacketPlayCbStart
+ * @author User
+ *
+ */
 public class PacketPlaySbStart implements Packet<PacketPlaySbListener> {
 
 	public PublicKey cp;

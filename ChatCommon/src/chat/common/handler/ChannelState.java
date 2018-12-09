@@ -1,5 +1,8 @@
 package chat.common.handler;
 
+import static chat.common.handler.ProtocolDirection.CLIENTBOUND;
+import static chat.common.handler.ProtocolDirection.SERVERBOUND;
+
 import java.util.Map;
 
 import com.google.common.collect.BiMap;
@@ -7,60 +10,115 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 
 import chat.common.packet.Packet;
+import chat.common.packet.all.PacketAllCbMessage;
 import chat.common.packet.all.PacketAllCbSetState;
 import chat.common.packet.all.PacketAllSbDisconnect;
 import chat.common.packet.login.PacketLoginCbWelcome;
 import chat.common.packet.login.PacketLoginSbHandshake;
 import chat.common.packet.match.PacketMatchCbMatchFound;
 import chat.common.packet.match.PacketMatchSbCancelMatchmake;
+import chat.common.packet.play.PacketPlayCbChat;
+import chat.common.packet.play.PacketPlayCbSafeMessage;
 import chat.common.packet.play.PacketPlayCbStart;
+import chat.common.packet.play.PacketPlaySbChat;
+import chat.common.packet.play.PacketPlaySbGetList;
+import chat.common.packet.play.PacketPlaySbMatchInfo;
+import chat.common.packet.play.PacketPlaySbQuitMatch;
 import chat.common.packet.play.PacketPlaySbStart;
-import chat.common.packet.user.PacketUserCbAnnounce;
 import chat.common.packet.user.PacketUserCbSetUsername;
 import chat.common.packet.user.PacketUserSbGetUsername;
 import chat.common.packet.user.PacketUserSbSetUsername;
 import chat.common.packet.user.PacketUserSbStartMatchmake;
 
+/**
+ * Packet manager. Must contain all packet. Must not duplicate.
+ * 
+ * @author User
+ *
+ */
 public enum ChannelState {
+	/**
+	 * Just connected.
+	 * 
+	 * @see ChannelState.PLAY
+	 * @see ChannelState.MATCH
+	 * @see ChannelState.USER
+	 * @see ChannelState.LOGIN
+	 */
 	LOGIN(0) {
 		{
-			add(ProtocolDirection.CLIENTBOUND, PacketLoginCbWelcome.class);
-			add(ProtocolDirection.CLIENTBOUND, PacketAllCbSetState.class);
+			add(CLIENTBOUND, PacketLoginCbWelcome.class); // 0
 
-			add(ProtocolDirection.SERVERBOUND, PacketLoginSbHandshake.class);
-			add(ProtocolDirection.SERVERBOUND, PacketAllSbDisconnect.class);
+			add(SERVERBOUND, PacketLoginSbHandshake.class); // 0
+			
+			addAllPackets(this);
 		}
 	},
+	/**
+	 * Sent some important datas.
+	 * 
+	 * @see ChannelState.PLAY
+	 * @see ChannelState.MATCH
+	 * @see ChannelState.USER
+	 * @see ChannelState.LOGIN
+	 */
 	USER(1) {
 		{
-			add(ProtocolDirection.CLIENTBOUND, PacketUserCbSetUsername.class);
-			add(ProtocolDirection.CLIENTBOUND, PacketUserCbAnnounce.class);
-			add(ProtocolDirection.CLIENTBOUND, PacketAllCbSetState.class);
+			add(CLIENTBOUND, PacketUserCbSetUsername.class); // 0
 
-			add(ProtocolDirection.SERVERBOUND, PacketUserSbStartMatchmake.class);
-			add(ProtocolDirection.SERVERBOUND, PacketUserSbGetUsername.class);
-			add(ProtocolDirection.SERVERBOUND, PacketUserSbSetUsername.class);
-			add(ProtocolDirection.SERVERBOUND, PacketAllSbDisconnect.class);
+			add(SERVERBOUND, PacketUserSbStartMatchmake.class); // 0
+			add(SERVERBOUND, PacketUserSbGetUsername.class); // 1
+			add(SERVERBOUND, PacketUserSbSetUsername.class); // 2
+			
+			addAllPackets(this);
 		}
 	},
+	/**
+	 * Matchmaking...
+	 * 
+	 * @see ChannelState.PLAY
+	 * @see ChannelState.MATCH
+	 * @see ChannelState.USER
+	 * @see ChannelState.LOGIN
+	 */
 	MATCH(2) {
 		{
-			add(ProtocolDirection.CLIENTBOUND, PacketMatchCbMatchFound.class);
-			add(ProtocolDirection.CLIENTBOUND, PacketAllCbSetState.class);
+			add(CLIENTBOUND, PacketMatchCbMatchFound.class); // 0
 
-			add(ProtocolDirection.SERVERBOUND, PacketMatchSbCancelMatchmake.class);
-			add(ProtocolDirection.SERVERBOUND, PacketAllSbDisconnect.class);
+			add(SERVERBOUND, PacketMatchSbCancelMatchmake.class); // 0
+			
+			addAllPackets(this);
 		}
 	},
+	/**
+	 * Chatting...
+	 * 
+	 * @see ChannelState.PLAY
+	 * @see ChannelState.MATCH
+	 * @see ChannelState.USER
+	 * @see ChannelState.LOGIN
+	 */
 	PLAY(3) {
 		{
-			add(ProtocolDirection.CLIENTBOUND, PacketPlayCbStart.class);
-			add(ProtocolDirection.CLIENTBOUND, PacketAllCbSetState.class);
+			add(CLIENTBOUND, PacketPlayCbStart.class); // 0
+			add(CLIENTBOUND, PacketPlayCbChat.class); // 1
+			add(CLIENTBOUND, PacketPlayCbSafeMessage.class); // 2
+
+			add(SERVERBOUND, PacketPlaySbStart.class); // 0
+			add(SERVERBOUND, PacketPlaySbQuitMatch.class); // 1
+			add(SERVERBOUND, PacketPlaySbChat.class); // 2
+			add(SERVERBOUND, PacketPlaySbGetList.class); // 3
+			add(SERVERBOUND, PacketPlaySbMatchInfo.class); // 4
 			
-			add(ProtocolDirection.SERVERBOUND, PacketPlaySbStart.class);
-			add(ProtocolDirection.SERVERBOUND, PacketAllSbDisconnect.class);
+			addAllPackets(this);
 		}
 	};
+	public static void addAllPackets(ChannelState cs) {
+		cs.add(CLIENTBOUND, PacketAllCbSetState.class); // 1
+		cs.add(CLIENTBOUND, PacketAllCbMessage.class); // 2
+		
+		cs.add(SERVERBOUND, PacketAllSbDisconnect.class); // 2
+	}
 	public Map<ProtocolDirection, BiMap<Integer, Class<? extends Packet<?>>>> m;
 	private int st = 0;
 

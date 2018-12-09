@@ -8,6 +8,12 @@ import chat.common.packet.Packet;
 import chat.common.work.RSAUtils;
 import io.netty.buffer.ByteBuf;
 
+/**
+ * Server to client.
+ * Sends after finding match.
+ * @author User
+ *
+ */
 public class PacketMatchCbMatchFound implements Packet<PacketMatchCbListener> {
 
 	public PublicKey pk;

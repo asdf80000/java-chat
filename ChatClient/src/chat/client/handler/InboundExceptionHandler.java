@@ -16,6 +16,7 @@ public class InboundExceptionHandler extends ChannelInboundHandlerAdapter {
 		InetSocketAddress isa = (InetSocketAddress) ctx.channel().remoteAddress();
 		System.out.println("[" + isa.getHostString() + "] Disconnected with error.");
 		System.out.println(cause.getClass().getName());
+		cause.printStackTrace();
 		ctx.close();
 	}
 }

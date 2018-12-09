@@ -3,6 +3,7 @@ package chat.server.main;
 import java.net.BindException;
 import java.net.InetSocketAddress;
 
+import chat.common.handler.ChatCommonInboundPipelineHandler;
 import chat.common.handler.ChatCommonInboundPriorityHandler;
 import chat.common.handler.ChatCommonPacketPrepender;
 import chat.common.handler.ChatCommonPacketSplitter;
@@ -23,14 +24,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class Main {
 	public static int PORT = 46435;
 
-	public ChatServerInboundHandler handle = null;
-	public ChatCommonInboundPriorityHandler priority = null;
-
 	public Main(int port) throws Exception {
 		// TODO Auto-generated constructor stub
-		System.out.println("[Boot] Info: Starting Chat Server");
-		EventLoopGroup boss = new NioEventLoopGroup();
-		EventLoopGroup work = new NioEventLoopGroup();
+		System.out.println("[Boot] Starting ChatServer...");
+		EventLoopGroup boss = new NioEventLoopGroup(10);
+		EventLoopGroup work = new NioEventLoopGroup(10);
 		try {
 			ServerBootstrap sb = new ServerBootstrap();
 			sb.group(boss, work).channel(NioServerSocketChannel.class).localAddress(port)
@@ -42,14 +40,15 @@ public class Main {
 							// TODO Auto-generated method stub
 							System.out.println(
 									"New connection from " + ((InetSocketAddress) ch.remoteAddress()).getHostName());
-							handle = new ChatServerInboundHandler();
-							priority = new ChatCommonInboundPriorityHandler();
+							ChatServerInboundHandler handle = new ChatServerInboundHandler();
+							ChatCommonInboundPriorityHandler priority = new ChatCommonInboundPriorityHandler();
+							ChatCommonInboundPipelineHandler pipeline = new ChatCommonInboundPipelineHandler();
 							ch.pipeline().addLast("inboundsplit", new ChatCommonPacketSplitter())
 									.addLast("outboundprepend", new ChatCommonPacketPrepender())
 									.addLast("inboundpacketdecoder", new ChatServerPacketDecoder())
 									.addLast("outboundpacketencoder", new ChatServerPacketEncoder())
-									.addLast("inboundpriority", priority).addLast("inboundhandle", handle)
-									.addLast("inboundexception", ieh);
+									.addLast("inboundpriority", priority).addLast("inboundpipeline", pipeline)
+									.addLast("inboundhandle", handle).addLast("inboundexception", ieh);
 
 							ch.attr(AttributeSaver.manager).set(new ChannelManager());
 						}

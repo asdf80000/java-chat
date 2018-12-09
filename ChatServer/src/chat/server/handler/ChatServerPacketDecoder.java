@@ -5,6 +5,7 @@ import java.util.List;
 
 import chat.common.handler.ChannelState;
 import chat.common.handler.ProtocolDirection;
+import chat.common.main.Utils;
 import chat.common.packet.Packet;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -21,7 +22,7 @@ public class ChatServerPacketDecoder extends ByteToMessageDecoder {
 			throw new IOException("Bad packet id " + pid);
 		}
 		p.decode(in);
-		System.out.println("[Decoder] Server: Processing packet " + p.getClass().getSimpleName() + " (0x" + Integer.toHexString(pid) + ") " + p);
+		System.out.println("[Decoder] Server: Processing packet " + p.getClass().getSimpleName() + " (0x" + Integer.toHexString(pid) + ") " + Utils.serialize(p));
 		out.add(p);
 	}
 }
