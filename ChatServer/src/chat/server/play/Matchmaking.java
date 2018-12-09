@@ -20,8 +20,6 @@ public class Matchmaking {
 
 			@Override
 			public void run() {
-				if (matches.size() < 1)
-					return;
 				do {
 					// Check match
 					if (mc == null) {
@@ -31,7 +29,7 @@ public class Matchmaking {
 					// Check able to add player to match
 					boolean newMatch = false;
 					newMatch = newMatch || mc.countUsers() > 50; // Too many users
-					newMatch = newMatch || System.currentTimeMillis() - mc.startTime > 60000; // Too old(60sec) match
+					newMatch = newMatch || System.currentTimeMillis() - mc.startTime > 120000; // Too old(60sec) match
 					if (newMatch) {
 						mc.setCleanable(true);
 						mc.announce("이제부터 이 방에는 새로운 사용자가 들어오지 않을 것입니다. 만약 혼자라면 다른 방을 찾는 것을 권장합니다.");
@@ -40,7 +38,7 @@ public class Matchmaking {
 					}
 
 					if (matches.size() < 1)
-						continue;
+						break;
 					MatchUserData mud = matches.get((int) (Math.random() * matches.size()));
 					if (!mud.handle.ch.isActive()) {
 						matches.remove(mud);
