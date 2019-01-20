@@ -83,6 +83,10 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 	@Override
 	public void process(PacketLoginSbHandshake packet) {
 		checkUserDb();
+		String id = packet.id;
+		String pw = packet.pwd;
+		
+		
 		System.out.println("User logged in. Username: " + packet.id);
 		Utils.getChannelAttr(AttributeSaver.username, ch).set(packet.id);
 		// DO NOT CHANGE STATE BEFORE SENDING PACKET!!!!!!!!!!!!! IMPORTANT!!
