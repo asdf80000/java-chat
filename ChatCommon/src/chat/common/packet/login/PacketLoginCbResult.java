@@ -6,8 +6,8 @@ import chat.common.packet.Packet;
 import io.netty.buffer.ByteBuf;
 
 public class PacketLoginCbResult implements Packet<PacketLoginCbListener> {
-	String key = "";
-	boolean succ = false;
+	public String key = "";
+	public boolean succ = false;
 	@Override
 	public void decode(ByteBuf buf) {
 		key = Utils.getString(buf);

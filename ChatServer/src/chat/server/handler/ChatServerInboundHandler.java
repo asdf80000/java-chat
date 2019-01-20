@@ -1,9 +1,16 @@
 package chat.server.handler;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import org.apache.commons.io.FileUtils;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 
 import chat.common.handler.ChannelState;
 import chat.common.listener.PacketAllSbListener;
@@ -17,6 +24,7 @@ import chat.common.packet.all.PacketAllCbMessage;
 import chat.common.packet.all.PacketAllCbMessage.PacketAllCbMessageType;
 import chat.common.packet.all.PacketAllCbSetState;
 import chat.common.packet.all.PacketAllSbDisconnect;
+import chat.common.packet.login.PacketLoginCbResult;
 import chat.common.packet.login.PacketLoginCbWelcome;
 import chat.common.packet.login.PacketLoginSbHandshake;
 import chat.common.packet.login.PacketLoginSbRegister;
@@ -87,7 +95,41 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 		checkUserDb();
 		String id = packet.id;
 		String pw = packet.pwd;
-		if(!FileUtils.is)
+		if(!Utils.isFilenameValid(id)) {
+			PacketLoginCbResult p = new PacketLoginCbResult();
+			p.succ = false;
+			p.key = "INVALID_ID";
+			sendPacket(p);
+			return;
+		}
+		File uf = new File("db/users/"+id+".json");
+		if(!uf.exists()) {
+			PacketLoginCbResult p = new PacketLoginCbResult();
+			p.succ = false;
+			p.key = "INVALIDAUTH";
+			sendPacket(p);
+			return;
+		}
+		JsonObject job = null;
+		try {
+			JsonParser jp = new JsonParser();
+			job = jp.parse(FileUtils.readFileToString(uf, "UTF8")).getAsJsonObject();
+		} catch (IOException | JsonParseException e) {
+			FileUtils.deleteQuietly(uf);
+			PacketLoginCbResult p = new PacketLoginCbResult();
+			p.succ = false;
+			p.key = "REGAGAIN";
+			sendPacket(p);
+			return;
+		}
+		if(!job.get("pw").equals(pw)) {
+			PacketLoginCbResult p = new PacketLoginCbResult();
+			p.succ = false;
+			p.key = "INVALIDAUTH";
+			sendPacket(p);
+			return;
+		}
+		
 		
 		System.out.println("User logged in. Username: " + packet.id);
 		Utils.getChannelAttr(AttributeSaver.username, ch).set(packet.id);
@@ -166,6 +208,43 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 	@Override
 	public void process(PacketLoginSbRegister packet) {
 		checkUserDb();
+		String id = packet.username;
+		String pw = packet.password;
+		
+		if(!Utils.isFilenameValid(id)) {
+			PacketLoginCbResult p = new PacketLoginCbResult();
+			p.succ = false;
+			p.key = "INVALID_ID";
+			sendPacket(p);
+			return;
+		}
+		File uf = new File("db/users/"+id+".json");
+		if(uf.exists()) {
+			PacketLoginCbResult p = new PacketLoginCbResult();
+			p.succ = false;
+			p.key = "INVALIDREG";
+			sendPacket(p);
+			return;
+		}
+		
+		JsonObject job = new JsonObject();
+		job.addProperty("id", id);
+		job.addProperty("pw", pw);
+		Gson g = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
+		try {
+			FileUtils.writeStringToFile(uf, g.toJson(job), "UTF8");
+		} catch (IOException e) {
+			PacketLoginCbResult p = new PacketLoginCbResult();
+			p.succ = true;
+			p.key = "SERVERIO";
+			sendPacket(p);
+		}
+		
+		PacketLoginCbResult p = new PacketLoginCbResult();
+		p.succ = true;
+		p.key = "CREATED";
+		sendPacket(p);
+		return;
 	}
 
 	public static void checkUserDb() {
