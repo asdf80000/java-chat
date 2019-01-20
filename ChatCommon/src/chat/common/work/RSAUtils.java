@@ -22,11 +22,12 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 public class RSAUtils {
+	public static int key_length = 4096;
 	public static KeyPair genKey() {
 		try {
 			KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
 			SecureRandom sr = new SecureRandom();
-			kpg.initialize(1024, sr);
+			kpg.initialize(key_length, sr);
 			KeyPair kp = kpg.generateKeyPair();
 			return kp;
 		} catch (Exception e) {

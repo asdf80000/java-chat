@@ -1,6 +1,7 @@
 package chat.common.main;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.security.PrivateKey;
@@ -86,12 +87,12 @@ public class Utils {
 			String str = "{";
 			boolean first = true;
 			for (Field f : p.getClass().getFields()) {
-				str += "\"" + f.getName() + "\": ";
-				str += serialize(f.get(p));
 				if (first)
 					first = false;
 				else
 					str += ", ";
+				str += "\"" + f.getName() + "\": ";
+				str += serialize(f.get(p));
 			}
 			str += "}";
 			return str;
@@ -101,6 +102,8 @@ public class Utils {
 	}
 
 	public static String serialize(Object obj) {
+		if (obj == null) // null threw error before. So added null checker
+			return "null";
 		if (obj instanceof String) {
 			return "\"" + StringEscapeUtils.escapeJava((String) obj) + "\"";
 		} else if (obj instanceof Packet<?>) {
@@ -122,6 +125,8 @@ public class Utils {
 					"[Security warning] PRIVATE RSA KEY DETECTED IN PACKET. SERVER MIGHT BE HACKED. DEBUG STACK TRACE BELOW.");
 			new Exception().printStackTrace();
 			return "Private RSA key";
+		} else if (obj.getClass().isArray()) {
+			return obj.getClass().getComponentType().getName() + "[" + Array.getLength(obj) + "]";
 		}
 		return obj.toString();
 	}
@@ -149,7 +154,14 @@ public class Utils {
 		}
 	}
 
-	public static boolean log = false;
+	public static void sleep(int millis) {
+		try {
+			Thread.sleep(millis);
+		} catch (InterruptedException e) {
+		}
+	}
+
+	public static boolean log = true;
 
 	public static <T> Type getType(Class<T> clazz) {
 		return new TypeToken<T>() {

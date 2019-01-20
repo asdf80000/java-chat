@@ -12,10 +12,11 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Aes256Utils {
+	public static int key_length = 256;
 	public static SecretKey genKey() {
 		try {
 			KeyGenerator kg = KeyGenerator.getInstance("AES");
-			kg.init(256);
+			kg.init(key_length);
 			return kg.generateKey();
 		} catch (Exception e) {
 			throw new RuntimeException(e);

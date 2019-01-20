@@ -17,12 +17,13 @@ public class ChatServerPacketDecoder extends ByteToMessageDecoder {
 		// TODO Auto-generated method stub
 		int pid = in.readInt();
 		ChannelState cs = ctx.channel().attr(AttributeSaver.state).get();
-		Packet<?> p = cs.m.get(ProtocolDirection.SERVERBOUND).get(pid).newInstance();
-		if( p == null) {
+		Packet<?> p = cs.m.get(ProtocolDirection.SERVERBOUND).get(pid).getDeclaredConstructor().newInstance();
+		if (p == null) {
 			throw new IOException("Bad packet id " + pid);
 		}
 		p.decode(in);
-		System.out.println("[Decoder] Server: Processing packet " + p.getClass().getSimpleName() + " (0x" + Integer.toHexString(pid) + ") " + Utils.serialize(p));
+		System.out.println("[Decoder] Server: Processing packet " + p.getClass().getSimpleName() + " (0x"
+				+ Integer.toHexString(pid) + ") " + Utils.serialize(p));
 		out.add(p);
 	}
 }

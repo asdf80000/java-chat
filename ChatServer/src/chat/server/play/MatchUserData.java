@@ -2,18 +2,22 @@ package chat.server.play;
 
 import java.security.KeyPair;
 import java.security.PublicKey;
-
-import javax.crypto.SecretKey;
+import java.util.ArrayList;
 
 import chat.common.listener.PacketAllSbListener;
 import chat.common.listener.PacketPlaySbListener;
+import chat.common.main.Utils;
 import chat.common.packet.all.PacketAllSbDisconnect;
+import chat.common.packet.play.PacketPlayCbGetList;
+import chat.common.packet.play.PacketPlayCbGetMatchSummary;
 import chat.common.packet.play.PacketPlayCbStart;
 import chat.common.packet.play.PacketPlaySbChat;
 import chat.common.packet.play.PacketPlaySbGetList;
+import chat.common.packet.play.PacketPlaySbGetMatchSummary;
 import chat.common.packet.play.PacketPlaySbMatchInfo;
 import chat.common.packet.play.PacketPlaySbQuitMatch;
 import chat.common.packet.play.PacketPlaySbStart;
+import chat.common.packet.play.PacketPlayCbSafeMessage.PacketPlayCbSafeMessageType;
 import chat.common.work.Aes256Utils;
 import chat.server.handler.ChatServerInboundHandler;
 import chat.server.play.ChatMatch.ChatsElement;
@@ -24,8 +28,8 @@ public class MatchUserData implements PacketPlaySbListener, PacketAllSbListener 
 	public final ChatServerInboundHandler handle;
 	public KeyPair serverRsaPair;
 	public PublicKey clientPublicKey;
-	public SecretKey aesKey;
 	public ChatMatch currentMatch;
+	public boolean ready = false;
 
 	public MatchUserData(String addr, String name, ChatServerInboundHandler handle) {
 		userAddress = addr;
@@ -36,17 +40,19 @@ public class MatchUserData implements PacketPlaySbListener, PacketAllSbListener 
 	@Override
 	public void process(PacketPlaySbStart packet) {
 		clientPublicKey = packet.cp;
-		aesKey = Aes256Utils.genKey();
 
 		PacketPlayCbStart p = new PacketPlayCbStart();
 		p.workwith(clientPublicKey);
-		p.sk = aesKey;
+		p.sk = currentMatch.aeskey;
 		handle.sendPacket(p);
+		
+		ready = true;
 
-		currentMatch.announce(userName + "님이 방에 참가했습니다.");
+		currentMatch.announce(PacketPlayCbSafeMessageType.JOINED, new String[] { userName });
 		if (currentMatch.countUsers() == 1 && !currentMatch.isCleanable()) {
-			currentMatch.tell("아직 이 방으로 매치메이킹이 진행 중입니다.", this);
-			currentMatch.tell("방을 옮기지 말고 이 방에서 계속 머무르는 것이 가장 빠르게 사용자를 모으는 방법입니다.", this);
+			currentMatch.tell(PacketPlayCbSafeMessageType.STILL_0, null, this);
+			currentMatch.tell(PacketPlayCbSafeMessageType.STILL_1, null, this);
+			currentMatch.tell(PacketPlayCbSafeMessageType.STILL_2, null, this);
 		}
 	}
 
@@ -63,14 +69,17 @@ public class MatchUserData implements PacketPlaySbListener, PacketAllSbListener 
 	@Override
 	public void process(PacketPlaySbGetList packetPlaySbGetList) {
 		ChatMatch cm = currentMatch;
-		a("이 방의 사용자 목록 (" + cm.countUsers() + "명)");
+		PacketPlayCbGetList p = new PacketPlayCbGetList();
+		p.list = new ArrayList<>();
 		for (MatchUserData mud : cm.users) {
-			a(" - " + mud.userName + " (" + mud.userAddress.substring(0, Math.min(8, mud.userAddress.length())) + ")");
+			String ts = mud.userName + "(" + mud.userAddress.substring(0, 4) + ")";
+			p.list.add(Aes256Utils.encrypt(Utils.byteStr(ts), cm.aeskey));
 		}
+		handle.sendPacket(p);
 	}
 
-	private void a(String text) {
-		currentMatch.tell(text, this);
+	private void tell(PacketPlayCbSafeMessageType type, String[] dataArr) {
+		currentMatch.tell(type, dataArr, this);
 	}
 
 	@Override
@@ -81,44 +90,17 @@ public class MatchUserData implements PacketPlaySbListener, PacketAllSbListener 
 	@Override
 	public void process(PacketPlaySbMatchInfo packetPlaySbMatchInfo) {
 		ChatMatch cm = currentMatch;
-		a("----- 매치 정보 ----------");
-		a("현재 매치 ID: " + cm.hashCodeStr());
-		a("현재 매치 인원 수: " + cm.countUsers());
-		int mins = 0;
-		int secs = (int) ((System.currentTimeMillis() - cm.startTime) / 1000);
-		String btxt = "";
-		String txt = secs + "초";
-		if (secs >= 60) {
-			mins = secs / 60;
-			secs = secs % 60;
-			btxt = " " + secs + "초";
-			txt = mins + "분" + btxt;
-			
-			int hours = 0;
-			if (mins >= 60) {
-				hours = mins / 60;
-				mins = mins % 60;
-				btxt = " " + txt;
-				txt = hours + "시간" + btxt;
-				
-				int days = 0;
-				if(hours >= 24) {
-					days = hours / 24;
-					hours = hours % 24;
-					btxt = " " + txt;
-					txt = days + "일 " + btxt;
-					
-					int years = 0;
-					if(days > 365) {
-						years = days / 365;
-						days = days % 365;
-						btxt = " " + txt;
-						txt = years + "년 " + btxt;
-					}
-				}
-			}
-		}
+		tell(PacketPlayCbSafeMessageType.MATCHINFO_0, null);
+		tell(PacketPlayCbSafeMessageType.MATCHINFO_1, new String[] { cm.hashCodeStr() });
+		tell(PacketPlayCbSafeMessageType.MATCHINFO_2, new String[] { cm.countUsers() + "" });
+		long l = (System.currentTimeMillis() - cm.startTime);
+		tell(PacketPlayCbSafeMessageType.MATCHINFO_3, new String[] { l + "" });
+	}
 
-		a("현재 매치 진행 시간: " + txt);
+	@Override
+	public void process(PacketPlaySbGetMatchSummary packetPlaySbGetMatchSummary) {
+		PacketPlayCbGetMatchSummary p = new PacketPlayCbGetMatchSummary();
+		p.mid = currentMatch.hashCodeStr();
+		handle.sendPacket(p);
 	}
 }

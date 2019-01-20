@@ -18,14 +18,19 @@ import chat.common.packet.login.PacketLoginSbHandshake;
 import chat.common.packet.match.PacketMatchCbMatchFound;
 import chat.common.packet.match.PacketMatchSbCancelMatchmake;
 import chat.common.packet.play.PacketPlayCbChat;
+import chat.common.packet.play.PacketPlayCbGetList;
+import chat.common.packet.play.PacketPlayCbGetMatchSummary;
+import chat.common.packet.play.PacketPlayCbMatchId;
 import chat.common.packet.play.PacketPlayCbSafeMessage;
 import chat.common.packet.play.PacketPlayCbStart;
 import chat.common.packet.play.PacketPlaySbChat;
 import chat.common.packet.play.PacketPlaySbGetList;
+import chat.common.packet.play.PacketPlaySbGetMatchSummary;
 import chat.common.packet.play.PacketPlaySbMatchInfo;
 import chat.common.packet.play.PacketPlaySbQuitMatch;
 import chat.common.packet.play.PacketPlaySbStart;
 import chat.common.packet.user.PacketUserCbSetUsername;
+import chat.common.packet.user.PacketUserCbUntranslatedMessage;
 import chat.common.packet.user.PacketUserSbGetUsername;
 import chat.common.packet.user.PacketUserSbSetUsername;
 import chat.common.packet.user.PacketUserSbStartMatchmake;
@@ -50,7 +55,7 @@ public enum ChannelState {
 			add(CLIENTBOUND, PacketLoginCbWelcome.class); // 0
 
 			add(SERVERBOUND, PacketLoginSbHandshake.class); // 0
-			
+
 			addAllPackets(this);
 		}
 	},
@@ -65,11 +70,12 @@ public enum ChannelState {
 	USER(1) {
 		{
 			add(CLIENTBOUND, PacketUserCbSetUsername.class); // 0
+			add(CLIENTBOUND, PacketUserCbUntranslatedMessage.class);
 
 			add(SERVERBOUND, PacketUserSbStartMatchmake.class); // 0
 			add(SERVERBOUND, PacketUserSbGetUsername.class); // 1
 			add(SERVERBOUND, PacketUserSbSetUsername.class); // 2
-			
+
 			addAllPackets(this);
 		}
 	},
@@ -86,7 +92,7 @@ public enum ChannelState {
 			add(CLIENTBOUND, PacketMatchCbMatchFound.class); // 0
 
 			add(SERVERBOUND, PacketMatchSbCancelMatchmake.class); // 0
-			
+
 			addAllPackets(this);
 		}
 	},
@@ -103,22 +109,27 @@ public enum ChannelState {
 			add(CLIENTBOUND, PacketPlayCbStart.class); // 0
 			add(CLIENTBOUND, PacketPlayCbChat.class); // 1
 			add(CLIENTBOUND, PacketPlayCbSafeMessage.class); // 2
+			add(CLIENTBOUND, PacketPlayCbGetMatchSummary.class); // 3
+			add(CLIENTBOUND, PacketPlayCbGetList.class); // 4
+			add(CLIENTBOUND, PacketPlayCbMatchId.class);
 
 			add(SERVERBOUND, PacketPlaySbStart.class); // 0
 			add(SERVERBOUND, PacketPlaySbQuitMatch.class); // 1
 			add(SERVERBOUND, PacketPlaySbChat.class); // 2
 			add(SERVERBOUND, PacketPlaySbGetList.class); // 3
 			add(SERVERBOUND, PacketPlaySbMatchInfo.class); // 4
-			
+			add(SERVERBOUND, PacketPlaySbGetMatchSummary.class); // 5
+
 			addAllPackets(this);
 		}
 	};
 	public static void addAllPackets(ChannelState cs) {
 		cs.add(CLIENTBOUND, PacketAllCbSetState.class); // 1
 		cs.add(CLIENTBOUND, PacketAllCbMessage.class); // 2
-		
+
 		cs.add(SERVERBOUND, PacketAllSbDisconnect.class); // 2
 	}
+
 	public Map<ProtocolDirection, BiMap<Integer, Class<? extends Packet<?>>>> m;
 	private int st = 0;
 
