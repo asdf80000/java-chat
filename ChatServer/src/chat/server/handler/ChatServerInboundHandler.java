@@ -3,6 +3,8 @@ package chat.server.handler;
 import java.io.File;
 import java.net.InetSocketAddress;
 
+import org.apache.commons.io.FileUtils;
+
 import chat.common.handler.ChannelState;
 import chat.common.listener.PacketAllSbListener;
 import chat.common.listener.PacketListener;
@@ -85,7 +87,7 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 		checkUserDb();
 		String id = packet.id;
 		String pw = packet.pwd;
-		
+		if(!FileUtils.is)
 		
 		System.out.println("User logged in. Username: " + packet.id);
 		Utils.getChannelAttr(AttributeSaver.username, ch).set(packet.id);

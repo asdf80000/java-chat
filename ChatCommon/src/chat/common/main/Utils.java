@@ -1,5 +1,7 @@
 package chat.common.main;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -167,5 +169,15 @@ public class Utils {
 		return new TypeToken<T>() {
 			private static final long serialVersionUID = 1L;
 		}.getType();
+	}
+
+	public static boolean isFilenameValid(String file) {
+		File f = new File(file);
+		try {
+			f.getCanonicalPath();
+			return true;
+		} catch (IOException e) {
+			return false;
+		}
 	}
 }
