@@ -82,6 +82,7 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 
 	@Override
 	public void process(PacketLoginSbHandshake packet) {
+		checkUserDb();
 		System.out.println("User logged in. Username: " + packet.id);
 		Utils.getChannelAttr(AttributeSaver.username, ch).set(packet.id);
 		// DO NOT CHANGE STATE BEFORE SENDING PACKET!!!!!!!!!!!!! IMPORTANT!!
@@ -158,7 +159,7 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 
 	@Override
 	public void process(PacketLoginSbRegister packet) {
-		
+		checkUserDb();
 	}
 
 	public static void checkUserDb() {
