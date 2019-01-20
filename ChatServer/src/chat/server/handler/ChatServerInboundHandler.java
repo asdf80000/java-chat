@@ -18,7 +18,6 @@ import chat.common.packet.login.PacketLoginCbWelcome;
 import chat.common.packet.login.PacketLoginSbHandshake;
 import chat.common.packet.match.PacketMatchSbCancelMatchmake;
 import chat.common.packet.user.PacketUserCbSetUsername;
-import chat.common.packet.user.PacketUserCbUntranslatedMessage;
 import chat.common.packet.user.PacketUserSbGetUsername;
 import chat.common.packet.user.PacketUserSbSetUsername;
 import chat.common.packet.user.PacketUserSbStartMatchmake;
@@ -97,17 +96,6 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 		}
 		Utils.getChannelAttr(AttributeSaver.state, ch).set(ChannelState.USER);
 		sendPacket(new PacketAllCbMessage(PacketAllCbMessageType.HELLO));
-
-		{
-			PacketUserCbUntranslatedMessage pkt = new PacketUserCbUntranslatedMessage(
-					"Please note that our server never log online users' chatting. And currently we never collect user informations.");
-			sendPacket(pkt);
-		}
-		{
-			PacketUserCbUntranslatedMessage pkt = new PacketUserCbUntranslatedMessage(
-					"저희 서버는 사용자의 채팅과 개인 정보를 수집/기록하지 않는다는 사실을 알아두십시오.");
-			sendPacket(pkt);
-		}
 	}
 
 	@Override
