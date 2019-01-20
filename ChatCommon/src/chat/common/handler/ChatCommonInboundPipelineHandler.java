@@ -25,6 +25,9 @@ public class ChatCommonInboundPipelineHandler extends ChannelInboundHandlerAdapt
 		}
 		queue.get(clazz).addLast(run);
 	}
+	public void removeAll(Class<? extends Packet<?>> clazz) {
+		queue.remove(clazz);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Override

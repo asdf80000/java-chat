@@ -116,6 +116,9 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 		try {
 			JsonParser jp = new JsonParser();
 			job = jp.parse(FileUtils.readFileToString(uf, "UTF8")).getAsJsonObject();
+			if(!job.has("nick")) {
+				throw new IOException("Old account, create again");
+			}
 		} catch (IOException | JsonParseException e) {
 			FileUtils.deleteQuietly(uf);
 			System.out.printf("[Login][Fail][%s] %s.\r\n", id, "Server account removed by error");
@@ -134,12 +137,18 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 			return;
 		}
 		
+		PacketLoginCbResult p1 = new PacketLoginCbResult();
+		p1.succ = true;
+		p1.key = "LOGGED";
+		sendPacket(p1);
 		
-		System.out.println("User logged in. Username: " + packet.id);
-		Utils.getChannelAttr(AttributeSaver.username, ch).set(packet.id);
+		String username = job.get("nick").getAsString();
+		System.out.println("User logged in. Username: " + username);
+		Utils.getChannelAttr(AttributeSaver.username, ch).set(username);
+		Utils.getChannelAttr(AttributeSaver.id, ch).set(id);
 		// DO NOT CHANGE STATE BEFORE SENDING PACKET!!!!!!!!!!!!! IMPORTANT!!
 		PacketLoginCbWelcome p = new PacketLoginCbWelcome();
-		p.username = packet.id;
+		p.username = username;
 		sendPacket(p);
 		ctx.flush();
 
@@ -156,6 +165,15 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 	@Override
 	public void process(PacketUserSbSetUsername packet) {
 		Utils.getChannelAttr(AttributeSaver.username, ch).set(packet.username);
+		try {
+			File uf = new File("db/users/" + Utils.getChannelAttr(AttributeSaver.id, ch) + ".json");
+			JsonObject job = null;
+			JsonParser jp = new JsonParser();
+			job = jp.parse(FileUtils.readFileToString(uf, "UTF8")).getAsJsonObject();
+			job.addProperty("nick", packet.username);
+			FileUtils.writeStringToFile(uf, new GsonBuilder().serializeNulls().disableHtmlEscaping().setPrettyPrinting().create().toJson(job), "UTF8", false);
+		} catch (Exception e) {
+		}
 		sendPacket(new PacketAllCbMessage(PacketAllCbMessageType.NICKCHANGED));
 	}
 
@@ -234,6 +252,7 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 		JsonObject job = new JsonObject();
 		job.addProperty("id", id);
 		job.addProperty("pw", pw);
+		job.addProperty("nick", id);
 		Gson g = new GsonBuilder().serializeNulls().setPrettyPrinting().disableHtmlEscaping().create();
 		try {
 			FileUtils.writeStringToFile(uf, g.toJson(job), "UTF8");

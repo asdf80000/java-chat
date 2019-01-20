@@ -23,7 +23,6 @@ public class ChatCommonPacketPrepender extends MessageToByteEncoder<ByteBuf> {
 			System.out.println("[Prepender] Writing to processor: " + i);
 		out.writeInt(i);
 		out.writeBytes(msg.readBytes(i));
-		System.out.println(msg.refCnt());
 	}
 
 }

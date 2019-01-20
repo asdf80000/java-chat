@@ -10,4 +10,5 @@ public class AttributeSaver {
 	public static AttributeKey<ChannelState> state = AttributeKey.newInstance("state");
 	public static AttributeKey<ChannelManager> manager = Utils.newAttributeKey(ChannelManager.class, "manager");
 	public static AttributeKey<Boolean> loggedin = AttributeKey.newInstance("loggedin");
+	public static AttributeKey<String> id = AttributeKey.newInstance("id");
 }
