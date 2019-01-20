@@ -34,10 +34,12 @@ import chat.common.packet.all.PacketAllCbSetState;
 import chat.common.packet.login.PacketLoginCbResult;
 import chat.common.packet.login.PacketLoginCbWelcome;
 import chat.common.packet.login.PacketLoginSbHandshake;
+import chat.common.packet.login.PacketLoginSbRegister;
 import chat.common.packet.match.PacketMatchCbMatchFound;
 import chat.common.packet.user.PacketUserCbSetUsername;
 import chat.common.packet.user.PacketUserCbUntranslatedMessage;
 import chat.common.packet.user.PacketUserSbStartMatchmake;
+import chat.common.work.Sha512Utils;
 import chat.component.AButton;
 import chat.gui.MatchingPane;
 import chat.gui.MsgsPanel;
@@ -64,7 +66,8 @@ public class ChatGUIClientInboundHandler extends SimpleChannelInboundHandler<Pac
 		defaultPacketListener = this;
 		currentPacketListener = defaultPacketListener;
 
-		sendHandshakePacket();
+//		sendHandshakePacket();
+		showLogin();
 	}
 	
 	private void rec1(JComponent c) {
@@ -76,6 +79,11 @@ public class ChatGUIClientInboundHandler extends SimpleChannelInboundHandler<Pac
 				rec1((JComponent) co);
 			}
 		}
+	}
+	
+	public void showLogin() {
+		sendRegisterPacket("user", "a");
+		sendHandshakePacket("user", "a");
 	}
 
 	public LobbyResult showLobby() {
@@ -240,13 +248,19 @@ public class ChatGUIClientInboundHandler extends SimpleChannelInboundHandler<Pac
 		public JScrollPane jsp;
 	}
 
-	private void sendHandshakePacket() {
+	private void sendHandshakePacket(String id, String pw) {
 		{
 			PacketLoginSbHandshake packet = new PacketLoginSbHandshake();
-			packet.id = "undefined";
-			packet.pwd = "";
+			packet.id = id;
+			packet.pwd = Sha512Utils.shaencode(pw);
 			sendPacket(packet);
 		}
+	}
+	private void sendRegisterPacket(String id, String pw) {
+		PacketLoginSbRegister p = new PacketLoginSbRegister();
+		p.username = id;
+		p.password = Sha512Utils.shaencode(pw);
+		sendPacket(p);
 	}
 
 	@Override

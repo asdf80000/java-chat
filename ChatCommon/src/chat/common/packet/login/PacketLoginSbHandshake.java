@@ -13,7 +13,7 @@ import io.netty.buffer.ByteBuf;
  */
 public class PacketLoginSbHandshake implements Packet<PacketLoginSbListener> {
 	public String id = "";
-	public String pwd;
+	public String pwd = "";
 
 	@Override
 	public void decode(ByteBuf uf) {
@@ -25,7 +25,7 @@ public class PacketLoginSbHandshake implements Packet<PacketLoginSbListener> {
 	@Override
 	public void encode(ByteBuf buf) {
 		Utils.writeString(buf, id);
-		Utils.getString(buf);
+		Utils.writeString(buf, pwd);
 	}
 
 	@Override

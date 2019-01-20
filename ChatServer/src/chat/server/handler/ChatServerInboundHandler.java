@@ -96,6 +96,7 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 		String id = packet.id;
 		String pw = packet.pwd;
 		if(!Utils.isFilenameValid(id)) {
+			System.out.printf("[Login][Fail][%s] %s.\r\n", id, "Id not valid filename");
 			PacketLoginCbResult p = new PacketLoginCbResult();
 			p.succ = false;
 			p.key = "INVALID_ID";
@@ -104,6 +105,7 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 		}
 		File uf = new File("db/users/"+id+".json");
 		if(!uf.exists()) {
+			System.out.printf("[Login][Fail][%s] %s.\r\n", id, "Not registered account");
 			PacketLoginCbResult p = new PacketLoginCbResult();
 			p.succ = false;
 			p.key = "INVALIDAUTH";
@@ -116,13 +118,15 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 			job = jp.parse(FileUtils.readFileToString(uf, "UTF8")).getAsJsonObject();
 		} catch (IOException | JsonParseException e) {
 			FileUtils.deleteQuietly(uf);
+			System.out.printf("[Login][Fail][%s] %s.\r\n", id, "Server account removed by error");
 			PacketLoginCbResult p = new PacketLoginCbResult();
 			p.succ = false;
 			p.key = "REGAGAIN";
 			sendPacket(p);
 			return;
 		}
-		if(!job.get("pw").equals(pw)) {
+		if(!job.get("pw").getAsString().equals(pw)) {
+			System.out.printf("[Login][Fail][%s] %s.\r\n", id, "Wrong password");
 			PacketLoginCbResult p = new PacketLoginCbResult();
 			p.succ = false;
 			p.key = "INVALIDAUTH";
