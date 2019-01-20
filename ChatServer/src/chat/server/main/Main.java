@@ -1,5 +1,6 @@
 package chat.server.main;
 
+import java.io.File;
 import java.net.BindException;
 import java.net.InetSocketAddress;
 
@@ -27,6 +28,13 @@ public class Main {
 	public Main(int port) throws Exception {
 		// TODO Auto-generated constructor stub
 		System.out.println("[Boot] Starting ChatServer...");
+		{
+			File f = new File("db/");
+			if(!f.exists())
+				f.mkdirs();
+		}
+		
+		System.out.println("[Boot] Opening socket");
 		EventLoopGroup boss = new NioEventLoopGroup(10);
 		EventLoopGroup work = new NioEventLoopGroup(10);
 		try {

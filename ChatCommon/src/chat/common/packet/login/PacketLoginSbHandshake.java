@@ -12,27 +12,27 @@ import io.netty.buffer.ByteBuf;
  *
  */
 public class PacketLoginSbHandshake implements Packet<PacketLoginSbListener> {
-	public String username = "@unknown";
+	public String id = "";
+	public String pwd;
 
 	@Override
 	public void decode(ByteBuf uf) {
-		// TODO Auto-generated method stub
-		this.username = Utils.getString(uf);
+		id = Utils.getString(uf);
+		pwd = Utils.getString(uf);
 		return;
 	}
 
 	@Override
 	public void encode(ByteBuf buf) {
-		// TODO Auto-generated method stub
-		Utils.writeString(buf, username);
+		Utils.writeString(buf, id);
+		Utils.getString(buf);
 	}
 
 	@Override
 	public void process(PacketLoginSbListener listener) {
-		// TODO Auto-generated method stub
 		listener.process(this);
 	}
-	
+
 	@Override
 	public String toString() {
 		return Utils.serializePacket(this);

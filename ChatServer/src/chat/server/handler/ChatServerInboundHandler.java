@@ -1,5 +1,6 @@
 package chat.server.handler;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 
 import chat.common.handler.ChannelState;
@@ -16,6 +17,7 @@ import chat.common.packet.all.PacketAllCbSetState;
 import chat.common.packet.all.PacketAllSbDisconnect;
 import chat.common.packet.login.PacketLoginCbWelcome;
 import chat.common.packet.login.PacketLoginSbHandshake;
+import chat.common.packet.login.PacketLoginSbRegister;
 import chat.common.packet.match.PacketMatchSbCancelMatchmake;
 import chat.common.packet.user.PacketUserCbSetUsername;
 import chat.common.packet.user.PacketUserSbGetUsername;
@@ -80,11 +82,11 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 
 	@Override
 	public void process(PacketLoginSbHandshake packet) {
-		System.out.println("User logged in. Username: " + packet.username);
-		Utils.getChannelAttr(AttributeSaver.username, ch).set(packet.username);
+		System.out.println("User logged in. Username: " + packet.id);
+		Utils.getChannelAttr(AttributeSaver.username, ch).set(packet.id);
 		// DO NOT CHANGE STATE BEFORE SENDING PACKET!!!!!!!!!!!!! IMPORTANT!!
 		PacketLoginCbWelcome p = new PacketLoginCbWelcome();
-		p.username = packet.username;
+		p.username = packet.id;
 		sendPacket(p);
 		ctx.flush();
 
@@ -152,5 +154,16 @@ public class ChatServerInboundHandler extends SimpleChannelInboundHandler<Packet
 			ctx.writeAndFlush(pkt).awaitUninterruptibly().sync();
 		} catch (InterruptedException e) {
 		}
+	}
+
+	@Override
+	public void process(PacketLoginSbRegister packet) {
+		
+	}
+
+	public static void checkUserDb() {
+		File f = new File("db/users/");
+		if (!f.exists())
+			f.mkdirs();
 	}
 }

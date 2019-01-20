@@ -31,6 +31,7 @@ import chat.common.packet.all.PacketAllCbDisconnect;
 import chat.common.packet.all.PacketAllCbMessage;
 import chat.common.packet.all.PacketAllCbMessage.PacketAllCbMessageType;
 import chat.common.packet.all.PacketAllCbSetState;
+import chat.common.packet.login.PacketLoginCbResult;
 import chat.common.packet.login.PacketLoginCbWelcome;
 import chat.common.packet.login.PacketLoginSbHandshake;
 import chat.common.packet.match.PacketMatchCbMatchFound;
@@ -242,7 +243,8 @@ public class ChatGUIClientInboundHandler extends SimpleChannelInboundHandler<Pac
 	private void sendHandshakePacket() {
 		{
 			PacketLoginSbHandshake packet = new PacketLoginSbHandshake();
-			packet.username = "undefined";
+			packet.id = "undefined";
+			packet.pwd = "";
 			sendPacket(packet);
 		}
 	}
@@ -336,5 +338,10 @@ public class ChatGUIClientInboundHandler extends SimpleChannelInboundHandler<Pac
 	@Override
 	public void process(PacketUserCbUntranslatedMessage p) {
 		addMessage(p.message);
+	}
+
+	@Override
+	public void process(PacketLoginCbResult packet) {
+		
 	}
 }
