@@ -13,8 +13,10 @@ import chat.common.packet.Packet;
 import chat.common.packet.all.PacketAllCbMessage;
 import chat.common.packet.all.PacketAllCbSetState;
 import chat.common.packet.all.PacketAllSbDisconnect;
+import chat.common.packet.login.PacketLoginCbResult;
 import chat.common.packet.login.PacketLoginCbWelcome;
 import chat.common.packet.login.PacketLoginSbHandshake;
+import chat.common.packet.login.PacketLoginSbRegister;
 import chat.common.packet.match.PacketMatchCbMatchFound;
 import chat.common.packet.match.PacketMatchSbCancelMatchmake;
 import chat.common.packet.play.PacketPlayCbChat;
@@ -53,8 +55,10 @@ public enum ChannelState {
 	LOGIN(0) {
 		{
 			add(CLIENTBOUND, PacketLoginCbWelcome.class); // 0
+			add(CLIENTBOUND, PacketLoginCbResult.class);
 
 			add(SERVERBOUND, PacketLoginSbHandshake.class); // 0
+			add(SERVERBOUND, PacketLoginSbRegister.class);
 
 			addAllPackets(this);
 		}
