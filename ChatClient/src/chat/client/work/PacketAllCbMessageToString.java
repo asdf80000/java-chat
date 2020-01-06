@@ -13,6 +13,7 @@ public class PacketAllCbMessageToString {
 		map.put(PacketAllCbMessageType.NICKCHANGED, new StaticStrGetter("닉네임이 변경되었습니다."));
 		map.put(PacketAllCbMessageType.NULL, new StaticStrGetter("알 수 없는 내용"));
 		map.put(PacketAllCbMessageType.EXITED, new StaticStrGetter("방을 나왔습니다."));
+		map.put(PacketAllCbMessageType.EXITED, new StaticStrGetter("코드리뷰 테스트"));
 		map.put(PacketAllCbMessageType.MATCHFOUND, new StrGetter() {
 			
 			@Override
@@ -26,6 +27,7 @@ public class PacketAllCbMessageToString {
 			public String get(String[] arr) {
 				// TODO Auto-generated method stub
 				return "당신의 닉네임: " + arr[0];
+				if(arr == NULL) return;
 			}
 		});
 	}
